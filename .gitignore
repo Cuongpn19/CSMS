@@ -1,0 +1,24 @@
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Maven
+/target/
+
+# Java compiled files
+*.class
+
+# Log files
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE khác
+.idea/
+*.iml
+
+# File cấu hình chứa dữ liệu nhạy cảm
+.env
