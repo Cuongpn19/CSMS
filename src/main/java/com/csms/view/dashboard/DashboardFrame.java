@@ -6,6 +6,7 @@ import com.csms.view.login.LoginFrame;
 import com.csms.view.order.OrderListPanel;
 import com.csms.view.order.OrderPanel;
 import com.csms.view.product.ProductPanel;
+import com.csms.view.dashboard.DashboardPanel;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -570,6 +571,14 @@ public class DashboardFrame extends JFrame {
                 contentPanel.add(
                                 wrapPage(new OrderListPanel()),
                                 "order-list");
+
+                contentPanel.add(
+                                new DashboardPanel(),
+                                "dashboard");
+
+                contentPanel.add(
+                                new DashboardPanel(),
+                                "overview");
 
                 contentPanel.add(
                                 createPlaceholderPage(

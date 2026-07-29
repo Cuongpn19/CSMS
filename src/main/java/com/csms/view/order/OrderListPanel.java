@@ -153,7 +153,7 @@ public class OrderListPanel extends JPanel {
         new JButton("Thanh toán");
 
         JLabel titleLabel = new JLabel(
-                "DANH SÁCH ĐƠN HÀNG");
+                "");
 
         titleLabel.setFont(
                 titleLabel.getFont().deriveFont(
