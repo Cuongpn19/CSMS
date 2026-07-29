@@ -15,6 +15,9 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import com.csms.view.payment.PaymentDialog;
+import com.csms.dto.ReceiptData;
+import com.csms.service.ReceiptService;
+import com.csms.view.payment.ReceiptDialog;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -40,6 +43,8 @@ public class OrderListPanel extends JPanel {
     private final NumberFormat currencyFormat;
 
     private final DateTimeFormatter dateFormatter;
+
+    private final ReceiptService receiptService;
 
     public OrderListPanel() {
         orderDAO = new OrderDAO();
@@ -69,6 +74,8 @@ public class OrderListPanel extends JPanel {
                 return false;
             }
         };
+
+        receiptService = new ReceiptService();
 
         orderTable = new JTable(tableModel);
 
@@ -167,6 +174,8 @@ public class OrderListPanel extends JPanel {
 
         JButton paymentButton = new JButton("Thanh toán");
 
+        JButton receiptButton = new JButton("Xem hóa đơn");
+
         JButton cancelButton = new JButton("Hủy đơn");
 
         refreshButton.addActionListener(
@@ -181,6 +190,9 @@ public class OrderListPanel extends JPanel {
         paymentButton.addActionListener(
                 event -> openPaymentDialog());
 
+        receiptButton.addActionListener(
+                event -> showReceipt());
+
         cancelButton.addActionListener(
                 event -> cancelOrder());
 
@@ -189,6 +201,7 @@ public class OrderListPanel extends JPanel {
         actionPanel.add(statusComboBox);
         actionPanel.add(updateButton);
         actionPanel.add(paymentButton);
+        actionPanel.add(receiptButton);
         actionPanel.add(detailButton);
         actionPanel.add(cancelButton);
         actionPanel.add(refreshButton);
@@ -197,6 +210,54 @@ public class OrderListPanel extends JPanel {
         panel.add(actionPanel, BorderLayout.EAST);
 
         return panel;
+    }
+
+    private void showReceipt() {
+        Integer orderId = getSelectedOrderId();
+
+        if (orderId == null) {
+            showWarning(
+                    "Vui lòng chọn đơn hàng cần xem hóa đơn.");
+            return;
+        }
+
+        try {
+            Optional<Order> optionalOrder = orderDAO.findById(orderId);
+
+            if (optionalOrder.isEmpty()) {
+                showError(
+                        "Không tìm thấy đơn hàng.");
+                return;
+            }
+
+            Order order = optionalOrder.get();
+
+            if (order.getStatus() != OrderStatus.PAID
+                    && order.getStatus() != OrderStatus.PAID) {
+
+                showWarning(
+                        "Chỉ có thể xem hóa đơn của đơn đã thanh toán.");
+                return;
+            }
+
+            ReceiptData receiptData = receiptService.getReceiptData(
+                    orderId);
+
+            JFrame owner = (JFrame) SwingUtilities
+                    .getWindowAncestor(
+                            this);
+
+            ReceiptDialog dialog = new ReceiptDialog(
+                    owner,
+                    receiptData);
+
+            dialog.setVisible(true);
+
+        } catch (
+                IllegalArgumentException
+                | IllegalStateException exception) {
+            showError(exception.getMessage());
+        }
     }
 
     private JScrollPane createTablePanel() {

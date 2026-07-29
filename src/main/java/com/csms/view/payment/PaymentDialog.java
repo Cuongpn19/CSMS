@@ -4,6 +4,8 @@ import com.csms.dao.PaymentDAO;
 import com.csms.entity.Order;
 import com.csms.entity.Payment;
 import com.csms.entity.PaymentMethod;
+import com.csms.dto.ReceiptData;
+import com.csms.service.ReceiptService;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -38,6 +40,8 @@ public class PaymentDialog extends JDialog {
 
     private final NumberFormat currencyFormat;
 
+    private final ReceiptService receiptService;
+
     private boolean paymentSuccessful;
 
     public PaymentDialog(
@@ -47,6 +51,7 @@ public class PaymentDialog extends JDialog {
 
         this.order = order;
         this.paymentDAO = new PaymentDAO();
+        this.receiptService = new ReceiptService();
 
         this.currencyFormat = NumberFormat.getCurrencyInstance(
                 Locale.forLanguageTag("vi-VN"));
@@ -357,6 +362,8 @@ public class PaymentDialog extends JDialog {
 
             dispose();
 
+            showReceipt();
+
         } catch (
                 IllegalArgumentException
                 | IllegalStateException exception) {
@@ -364,6 +371,29 @@ public class PaymentDialog extends JDialog {
                     this,
                     exception.getMessage(),
                     "Thanh toán thất bại",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showReceipt() {
+        try {
+            ReceiptData receiptData = receiptService.getReceiptData(
+                    order.getId());
+
+            ReceiptDialog receiptDialog = new ReceiptDialog(
+                    (JFrame) getOwner(),
+                    receiptData);
+
+            receiptDialog.setVisible(true);
+
+        } catch (
+                IllegalArgumentException
+                | IllegalStateException exception) {
+            JOptionPane.showMessageDialog(
+                    getOwner(),
+                    "Thanh toán đã thành công nhưng không thể tải hóa đơn: "
+                            + exception.getMessage(),
+                    "Lỗi hóa đơn",
                     JOptionPane.ERROR_MESSAGE);
         }
     }
