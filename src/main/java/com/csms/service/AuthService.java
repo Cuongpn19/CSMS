@@ -47,7 +47,7 @@ public class AuthService {
 
         boolean passwordMatches = PasswordUtils.verifyPassword(
                 password,
-                user.getPassword());
+                user.getPasswordHash());
 
         if (!passwordMatches) {
             return LoginResult.failure(

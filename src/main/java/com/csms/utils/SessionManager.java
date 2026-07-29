@@ -9,6 +9,11 @@ public final class SessionManager {
     private SessionManager() {
     }
 
+    public static void createSession(
+            User user) {
+        currentUser = user;
+    }
+
     public static void login(User user) {
         currentUser = user;
     }
@@ -22,6 +27,10 @@ public final class SessionManager {
     }
 
     public static void logout() {
+        currentUser = null;
+    }
+
+    public static void clearSession() {
         currentUser = null;
     }
 }

@@ -10,6 +10,9 @@ import com.csms.view.dashboard.DashboardPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import java.awt.Container;
+import com.csms.entity.RoleName;
+import com.csms.utils.SessionManager;
+import com.csms.view.admin.user.UserManagementPanel;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -173,10 +176,14 @@ public class DashboardFrame extends JFrame {
 
                 sidebar.add(Box.createVerticalStrut(5));
 
-                sidebar.add(
-                                createMenuButton(
-                                                "Người dùng",
-                                                "users"));
+                if (SessionManager.getCurrentUser()
+                                .getRoleName() == RoleName.ADMIN) {
+
+                        sidebar.add(
+                                        createMenuButton(
+                                                        "Người dùng",
+                                                        "users"));
+                }
 
                 sidebar.add(Box.createVerticalStrut(5));
 
@@ -315,7 +322,7 @@ public class DashboardFrame extends JFrame {
                 String role = currentUser == null
                                 ? "GUEST"
                                 : String.valueOf(
-                                                currentUser.getRole());
+                                                currentUser.getRoleName());
 
                 RoundedPanel userPanel = new RoundedPanel(
                                 14,
@@ -578,10 +585,8 @@ public class DashboardFrame extends JFrame {
                                 "overview");
 
                 contentPanel.add(
-                                createPlaceholderPage(
-                                                "Quản lý khách hàng",
-                                                "Theo dõi thông tin và lịch sử mua hàng của khách."),
-                                "customer");
+                                new UserManagementPanel(),
+                                "users");
 
                 contentPanel.add(
                                 createPlaceholderPage(
@@ -1500,6 +1505,13 @@ public class DashboardFrame extends JFrame {
 
                 parent.revalidate();
                 parent.repaint();
+        }
+
+        private boolean isAdmin() {
+                return SessionManager.getCurrentUser() != null
+                                && SessionManager
+                                                .getCurrentUser()
+                                                .getRoleName() == RoleName.ADMIN;
         }
 
         private MenuButton createMenuButton(

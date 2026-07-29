@@ -7,25 +7,29 @@ public final class PasswordUtils {
     private PasswordUtils() {
     }
 
-    public static String hashPassword(String plainPassword) {
+    public static String hashPassword(
+            String rawPassword) {
+        if (rawPassword == null
+                || rawPassword.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Mật khẩu không được để trống.");
+        }
+
         return BCrypt.hashpw(
-                plainPassword,
+                rawPassword,
                 BCrypt.gensalt(12));
     }
 
     public static boolean verifyPassword(
-            String plainPassword,
-            String hashedPassword) {
-        if (plainPassword == null || hashedPassword == null) {
+            String rawPassword,
+            String passwordHash) {
+        if (rawPassword == null
+                || passwordHash == null) {
             return false;
         }
 
-        try {
-            return BCrypt.checkpw(
-                    plainPassword,
-                    hashedPassword);
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
+        return BCrypt.checkpw(
+                rawPassword,
+                passwordHash);
     }
 }
