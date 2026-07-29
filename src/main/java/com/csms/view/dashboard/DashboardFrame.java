@@ -7,6 +7,9 @@ import com.csms.view.order.OrderListPanel;
 import com.csms.view.order.OrderPanel;
 import com.csms.view.product.ProductPanel;
 import com.csms.view.dashboard.DashboardPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
+import java.awt.Container;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -26,9 +29,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.border.EmptyBorder;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -38,12 +38,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridLayout;
-import java.awt.RenderingHints;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -78,6 +73,16 @@ public class DashboardFrame extends JFrame {
         private static final Color WARNING = new Color(234, 143, 8);
 
         private static final Color DANGER = new Color(220, 53, 69);
+
+        private static final Color NORMAL_BACKGROUND = new Color(15, 67, 105);
+
+        private static final Color HOVER_BACKGROUND = new Color(21, 91, 139);
+
+        private static final Color ACTIVE_BACKGROUND = new Color(25, 145, 213);
+
+        private static final Color PRESSED_BACKGROUND = new Color(13, 104, 164);
+
+        private static final Color NORMAL_FOREGROUND = new Color(221, 235, 245);
 
         private final CardLayout contentLayout;
         private final JPanel contentPanel;
@@ -126,8 +131,15 @@ public class DashboardFrame extends JFrame {
 
         private JPanel createSidebar() {
                 JPanel sidebar = new JPanel();
-                sidebar.setPreferredSize(new Dimension(255, 0));
-                sidebar.setBackground(SIDEBAR_BACKGROUND);
+
+                sidebar.setPreferredSize(
+                                new Dimension(250, 0));
+
+                sidebar.setMinimumSize(
+                                new Dimension(250, 0));
+
+                sidebar.setBackground(
+                                new Color(15, 67, 105));
 
                 sidebar.setLayout(
                                 new BoxLayout(
@@ -136,133 +148,118 @@ public class DashboardFrame extends JFrame {
 
                 sidebar.setBorder(
                                 new EmptyBorder(
-                                                24,
-                                                16,
                                                 20,
-                                                16));
+                                                14,
+                                                16,
+                                                14));
 
-                sidebar.add(createLogoPanel());
-                sidebar.add(Box.createVerticalStrut(28));
+                /*
+                 * Logo hệ thống.
+                 */
+                JPanel logoPanel = createLogoPanel();
+                logoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-                JLabel menuTitle = new JLabel("MENU CHÍNH");
-                menuTitle.setForeground(
-                                new Color(185, 215, 239));
+                sidebar.add(logoPanel);
+                sidebar.add(Box.createVerticalStrut(26));
 
-                menuTitle.setFont(
-                                new Font(
-                                                Font.SANS_SERIF,
-                                                Font.BOLD,
-                                                11));
-
-                menuTitle.setBorder(
-                                new EmptyBorder(
-                                                0,
-                                                12,
-                                                10,
-                                                0));
-
-                menuTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-                sidebar.add(menuTitle);
+                /*
+                 * Nhóm vận hành.
+                 */
 
                 sidebar.add(
                                 createMenuButton(
                                                 "Tổng quan",
-                                                "dashboard",
-                                                "01"));
+                                                "dashboard"));
 
-                sidebar.add(Box.createVerticalStrut(3));
-
-                sidebar.add(
-                                createMenuButton(
-                                                "Bán hàng",
-                                                "order",
-                                                "02"));
-
-                sidebar.add(Box.createVerticalStrut(3));
+                sidebar.add(Box.createVerticalStrut(5));
 
                 sidebar.add(
                                 createMenuButton(
-                                                "Danh sách đơn",
-                                                "order-list",
-                                                "03"));
+                                                "Người dùng",
+                                                "users"));
 
-                sidebar.add(Box.createVerticalStrut(3));
-
-                sidebar.add(
-                                createMenuButton(
-                                                "Sản phẩm",
-                                                "product",
-                                                "04"));
-
-                sidebar.add(Box.createVerticalStrut(3));
+                sidebar.add(Box.createVerticalStrut(5));
 
                 sidebar.add(
                                 createMenuButton(
-                                                "Khách hàng",
-                                                "customer",
-                                                "05"));
+                                                "Menu sản phẩm",
+                                                "product"));
 
-                sidebar.add(Box.createVerticalStrut(3));
-
-                sidebar.add(
-                                createMenuButton(
-                                                "Nhân viên",
-                                                "employee",
-                                                "06"));
-
-                sidebar.add(Box.createVerticalStrut(3));
+                sidebar.add(Box.createVerticalStrut(5));
 
                 sidebar.add(
                                 createMenuButton(
-                                                "Báo cáo",
-                                                "report",
-                                                "07"));
+                                                "Công thức",
+                                                "recipes"));
 
+                sidebar.add(Box.createVerticalStrut(5));
+
+                sidebar.add(
+                                createMenuButton(
+                                                "Nguyên liệu",
+                                                "ingredients"));
+
+                sidebar.add(Box.createVerticalStrut(22));
+
+                sidebar.add(
+                                createSidebarSectionTitle(
+                                                "QUẢN LÝ HỆ THỐNG"));
+
+                sidebar.add(
+                                createMenuButton(
+                                                "Chi nhánh",
+                                                "branches"));
+
+                sidebar.add(Box.createVerticalStrut(5));
+
+                sidebar.add(
+                                createMenuButton(
+                                                "Cấu hình VAT",
+                                                "vat"));
+
+                sidebar.add(Box.createVerticalStrut(5));
+
+                sidebar.add(
+                                createMenuButton(
+                                                "Sao lưu dữ liệu",
+                                                "backup"));
                 sidebar.add(Box.createVerticalGlue());
-                sidebar.add(createUserSidebarPanel());
-                sidebar.add(Box.createVerticalStrut(12));
 
-                JButton logoutButton = new JButton("Đăng xuất");
-                logoutButton.setMaximumSize(
+                /*
+                 * Đường phân cách phía trên tài khoản.
+                 */
+                JSeparator separator = new JSeparator();
+
+                separator.setMaximumSize(
                                 new Dimension(
                                                 Integer.MAX_VALUE,
-                                                44));
+                                                1));
 
-                logoutButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-                logoutButton.setForeground(Color.WHITE);
-                logoutButton.setBackground(
-                                new Color(0, 58, 111));
+                separator.setForeground(
+                                new Color(255, 255, 255, 35));
 
-                logoutButton.setFont(
-                                new Font(
-                                                Font.SANS_SERIF,
-                                                Font.BOLD,
-                                                14));
+                separator.setBackground(
+                                new Color(255, 255, 255, 35));
 
-                logoutButton.setFocusPainted(false);
-                logoutButton.setBorderPainted(false);
-                logoutButton.setCursor(
-                                Cursor.getPredefinedCursor(
-                                                Cursor.HAND_CURSOR));
+                separator.setAlignmentX(
+                                Component.LEFT_ALIGNMENT);
 
-                logoutButton.addActionListener(
-                                event -> logout());
+                sidebar.add(separator);
+                sidebar.add(Box.createVerticalStrut(14));
 
-                logoutButton.addMouseListener(
-                                new MouseAdapter() {
+                JPanel userPanel = createUserSidebarPanel();
 
-                                        @Override
-                                        public void mouseEntered(MouseEvent event) {
-                                                logoutButton.setBackground(
-                                                                new Color(220, 53, 69));
-                                        }
+                userPanel.setAlignmentX(
+                                Component.LEFT_ALIGNMENT);
 
-                                        @Override
-                                        public void mouseExited(MouseEvent event) {
-                                                logoutButton.setBackground(
-                                                                new Color(0, 58, 111));
-                                        }
-                                });
+                sidebar.add(userPanel);
+
+                sidebar.add(Box.createVerticalStrut(10));
+
+                JButton logoutButton = createLogoutButton();
+
+                logoutButton.setAlignmentX(
+                                Component.LEFT_ALIGNMENT);
 
                 sidebar.add(logoutButton);
 
@@ -1245,26 +1242,301 @@ public class DashboardFrame extends JFrame {
                 return wrapper;
         }
 
-        private MenuButton createMenuButton(
-                        String text,
-                        String pageName,
-                        String number) {
+        private JLabel createSidebarSectionTitle(
+                        String title) {
 
-                MenuButton button = new MenuButton(text, number);
+                JLabel label = new JLabel(title);
+
+                label.setForeground(
+                                new Color(
+                                                174,
+                                                207,
+                                                231));
+
+                label.setFont(
+                                new Font(
+                                                "Segoe UI",
+                                                Font.BOLD,
+                                                10));
+
+                label.setBorder(
+                                new EmptyBorder(
+                                                0,
+                                                12,
+                                                9,
+                                                0));
+
+                label.setAlignmentX(
+                                Component.LEFT_ALIGNMENT);
+
+                label.setMaximumSize(
+                                new Dimension(
+                                                Integer.MAX_VALUE,
+                                                26));
+
+                return label;
+        }
+
+        private JButton createSidebarMenuButton(
+                        String text,
+                        String cardName,
+                        boolean selected) {
+
+                JButton button = new JButton(text);
+
+                button.setName(cardName);
+
+                button.setHorizontalAlignment(
+                                SwingConstants.LEFT);
+
+                button.setFont(
+                                new Font(
+                                                "Segoe UI",
+                                                selected
+                                                                ? Font.BOLD
+                                                                : Font.PLAIN,
+                                                14));
+
+                button.setForeground(
+                                selected
+                                                ? Color.WHITE
+                                                : new Color(
+                                                                221,
+                                                                235,
+                                                                245));
+
+                button.setBackground(
+                                selected
+                                                ? new Color(
+                                                                26,
+                                                                139,
+                                                                209)
+                                                : new Color(
+                                                                15,
+                                                                67,
+                                                                105));
 
                 button.setMaximumSize(
                                 new Dimension(
                                                 Integer.MAX_VALUE,
-                                                46));
+                                                44));
 
-                button.setAlignmentX(Component.LEFT_ALIGNMENT);
+                button.setPreferredSize(
+                                new Dimension(
+                                                220,
+                                                44));
 
-                button.addActionListener(
-                                event -> navigateTo(
-                                                pageName,
-                                                getPageTitle(pageName)));
+                button.setMinimumSize(
+                                new Dimension(
+                                                180,
+                                                44));
 
-                menuButtons.put(pageName, button);
+                button.setAlignmentX(
+                                Component.LEFT_ALIGNMENT);
+
+                button.setBorder(
+                                BorderFactory.createCompoundBorder(
+                                                selected
+                                                                ? BorderFactory.createMatteBorder(
+                                                                                0,
+                                                                                4,
+                                                                                0,
+                                                                                0,
+                                                                                new Color(
+                                                                                                124,
+                                                                                                211,
+                                                                                                255))
+                                                                : BorderFactory.createEmptyBorder(),
+                                                new EmptyBorder(
+                                                                0,
+                                                                selected ? 13 : 17,
+                                                                0,
+                                                                10)));
+
+                button.setFocusPainted(false);
+                button.setBorderPainted(true);
+                button.setContentAreaFilled(true);
+                button.setOpaque(true);
+
+                button.setCursor(
+                                Cursor.getPredefinedCursor(
+                                                Cursor.HAND_CURSOR));
+
+                button.putClientProperty(
+                                "menu.cardName",
+                                cardName);
+
+                button.putClientProperty(
+                                "menu.selected",
+                                selected);
+
+                button.addMouseListener(
+                                new MouseAdapter() {
+
+                                        @Override
+                                        public void mouseEntered(
+                                                        MouseEvent event) {
+
+                                                boolean isSelected = Boolean.TRUE.equals(
+                                                                button.getClientProperty(
+                                                                                "menu.selected"));
+
+                                                if (!isSelected) {
+                                                        button.setBackground(
+                                                                        new Color(
+                                                                                        22,
+                                                                                        87,
+                                                                                        132));
+
+                                                        button.setForeground(
+                                                                        Color.WHITE);
+                                                }
+                                        }
+
+                                        @Override
+                                        public void mouseExited(
+                                                        MouseEvent event) {
+
+                                                boolean isSelected = Boolean.TRUE.equals(
+                                                                button.getClientProperty(
+                                                                                "menu.selected"));
+
+                                                if (!isSelected) {
+                                                        button.setBackground(
+                                                                        new Color(
+                                                                                        15,
+                                                                                        67,
+                                                                                        105));
+
+                                                        button.setForeground(
+                                                                        new Color(
+                                                                                        221,
+                                                                                        235,
+                                                                                        245));
+                                                }
+                                        }
+                                });
+
+                button.addActionListener(event -> {
+                        setSelectedSidebarButton(button);
+
+                        /*
+                         * Thay showCard(cardName) bằng method chuyển trang
+                         * đang có trong DashboardFrame của bạn.
+                         */
+                        navigateTo(
+                                        cardName,
+                                        getPageTitle(cardName));
+                });
+
+                return button;
+        }
+
+        private void setSelectedSidebarButton(
+                        JButton selectedButton) {
+
+                Container parent = selectedButton.getParent();
+
+                for (Component component : parent.getComponents()) {
+
+                        if (!(component instanceof JButton button)) {
+                                continue;
+                        }
+
+                        boolean selected = button == selectedButton;
+
+                        button.putClientProperty(
+                                        "menu.selected",
+                                        selected);
+
+                        button.setFont(
+                                        new Font(
+                                                        "Segoe UI",
+                                                        selected
+                                                                        ? Font.BOLD
+                                                                        : Font.PLAIN,
+                                                        14));
+
+                        button.setForeground(
+                                        selected
+                                                        ? Color.WHITE
+                                                        : new Color(
+                                                                        221,
+                                                                        235,
+                                                                        245));
+
+                        button.setBackground(
+                                        selected
+                                                        ? new Color(
+                                                                        26,
+                                                                        139,
+                                                                        209)
+                                                        : new Color(
+                                                                        15,
+                                                                        67,
+                                                                        105));
+
+                        button.setBorder(
+                                        BorderFactory.createCompoundBorder(
+                                                        selected
+                                                                        ? BorderFactory
+                                                                                        .createMatteBorder(
+                                                                                                        0,
+                                                                                                        4,
+                                                                                                        0,
+                                                                                                        0,
+                                                                                                        new Color(
+                                                                                                                        124,
+                                                                                                                        211,
+                                                                                                                        255))
+                                                                        : BorderFactory
+                                                                                        .createEmptyBorder(),
+                                                        new EmptyBorder(
+                                                                        0,
+                                                                        selected ? 13 : 17,
+                                                                        0,
+                                                                        10)));
+                }
+
+                parent.revalidate();
+                parent.repaint();
+        }
+
+        private MenuButton createMenuButton(
+                        String text,
+                        String pageName) {
+
+                MenuButton button = new MenuButton(text);
+
+                button.setName(pageName);
+
+                button.setMaximumSize(
+                                new Dimension(
+                                                Integer.MAX_VALUE,
+                                                44));
+
+                button.setPreferredSize(
+                                new Dimension(
+                                                220,
+                                                44));
+
+                button.setMinimumSize(
+                                new Dimension(
+                                                180,
+                                                44));
+
+                button.setAlignmentX(
+                                Component.LEFT_ALIGNMENT);
+
+                button.addActionListener(event -> {
+                        navigateTo(
+                                        pageName,
+                                        getPageTitle(pageName));
+                });
+
+                menuButtons.put(
+                                pageName,
+                                button);
 
                 return button;
         }
@@ -1355,10 +1627,9 @@ public class DashboardFrame extends JFrame {
                 private boolean pressed;
 
                 private MenuButton(
-                                String text,
-                                String number) {
+                                String text) {
 
-                        super(number + "    " + text);
+                        super("    " + text);
 
                         setHorizontalAlignment(SwingConstants.LEFT);
                         setVerticalAlignment(SwingConstants.CENTER);
@@ -1557,5 +1828,122 @@ public class DashboardFrame extends JFrame {
 
                         super.paintComponent(graphics);
                 }
+        }
+
+        private JButton createLogoutButton() {
+                JButton button = new JButton("    Đăng xuất");
+
+                button.setHorizontalAlignment(
+                                SwingConstants.LEFT);
+
+                button.setVerticalAlignment(
+                                SwingConstants.CENTER);
+
+                button.setMaximumSize(
+                                new Dimension(
+                                                Integer.MAX_VALUE,
+                                                42));
+
+                button.setPreferredSize(
+                                new Dimension(
+                                                220,
+                                                42));
+
+                button.setMinimumSize(
+                                new Dimension(
+                                                180,
+                                                42));
+
+                button.setFont(
+                                new Font(
+                                                "Segoe UI",
+                                                Font.BOLD,
+                                                13));
+
+                button.setForeground(
+                                new Color(
+                                                255,
+                                                205,
+                                                205));
+
+                button.setBackground(
+                                new Color(
+                                                15,
+                                                67,
+                                                105));
+
+                button.setBorder(
+                                new EmptyBorder(
+                                                0,
+                                                16,
+                                                0,
+                                                12));
+
+                button.setFocusPainted(false);
+                button.setBorderPainted(false);
+                button.setContentAreaFilled(false);
+                button.setOpaque(false);
+                button.setRolloverEnabled(false);
+
+                button.setCursor(
+                                Cursor.getPredefinedCursor(
+                                                Cursor.HAND_CURSOR));
+
+                button.addMouseListener(
+                                new MouseAdapter() {
+
+                                        @Override
+                                        public void mouseEntered(
+                                                        MouseEvent event) {
+
+                                                button.setOpaque(true);
+
+                                                button.setContentAreaFilled(true);
+
+                                                button.setBackground(
+                                                                new Color(
+                                                                                125,
+                                                                                45,
+                                                                                55));
+
+                                                button.setForeground(
+                                                                Color.WHITE);
+                                        }
+
+                                        @Override
+                                        public void mouseExited(
+                                                        MouseEvent event) {
+
+                                                button.setOpaque(false);
+
+                                                button.setContentAreaFilled(false);
+
+                                                button.setForeground(
+                                                                new Color(
+                                                                                255,
+                                                                                205,
+                                                                                205));
+                                        }
+
+                                        @Override
+                                        public void mousePressed(
+                                                        MouseEvent event) {
+
+                                                button.setOpaque(true);
+
+                                                button.setContentAreaFilled(true);
+
+                                                button.setBackground(
+                                                                new Color(
+                                                                                100,
+                                                                                34,
+                                                                                43));
+                                        }
+                                });
+
+                button.addActionListener(
+                                event -> logout());
+
+                return button;
         }
 }
