@@ -5,6 +5,8 @@ import com.csms.entity.RoleName;
 import com.csms.entity.User;
 import com.csms.entity.UserStatus;
 import com.csms.service.UserService;
+import com.csms.dao.BranchDAO;
+import com.csms.entity.Branch;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -39,6 +41,8 @@ public class UserDialog extends JDialog {
 
     private final JComboBox<RoleName> roleComboBox;
     private final JComboBox<UserStatus> statusComboBox;
+    private final BranchDAO branchDAO;
+    private final JComboBox<BranchComboItem> branchComboBox;
 
     private boolean saved;
 
@@ -56,6 +60,8 @@ public class UserDialog extends JDialog {
         this.userService = new UserService();
         this.editingUser = editingUser;
         this.currentLoggedInUserId = currentLoggedInUserId;
+        this.branchDAO = new BranchDAO();
+        this.branchComboBox = new JComboBox<>();
 
         usernameField = new JTextField();
         passwordField = new JPasswordField();
@@ -74,6 +80,7 @@ public class UserDialog extends JDialog {
         saved = false;
 
         initializeComponents();
+        loadBranches();
         fillEditingData();
     }
 
@@ -151,6 +158,13 @@ public class UserDialog extends JDialog {
                 formPanel,
                 constraints,
                 row++,
+                "Chi nhánh:",
+                branchComboBox);
+
+        addFormRow(
+                formPanel,
+                constraints,
+                row++,
                 "Trạng thái:",
                 statusComboBox);
 
@@ -202,13 +216,46 @@ public class UserDialog extends JDialog {
 
         setPreferredSize(
                 new Dimension(
-                        540,
+                        680,
                         editingUser == null
-                                ? 520
-                                : 430));
+                                ? 700
+                                : 590));
+
+        // setPreferredSize(
+        // new Dimension(
+        // 540,
+        // editingUser == null
+        // ? 520
+        // : 430));
 
         pack();
         setLocationRelativeTo(getOwner());
+    }
+
+    private void loadBranches() {
+        branchComboBox.removeAllItems();
+
+        branchComboBox.addItem(
+                new BranchComboItem(
+                        null,
+                        "Chưa phân chi nhánh"));
+
+        try {
+            for (Branch branch : branchDAO.findAllActive()) {
+
+                branchComboBox.addItem(
+                        new BranchComboItem(
+                                branch.getId(),
+                                branch.getName()));
+            }
+
+        } catch (IllegalStateException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    exception.getMessage(),
+                    "Lỗi tải chi nhánh",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void addFormRow(
@@ -265,21 +312,51 @@ public class UserDialog extends JDialog {
 
         statusComboBox.setSelectedItem(
                 editingUser.getStatus());
+
+        selectBranch(
+                editingUser.getBranchId());
+    }
+
+    private void selectBranch(
+            Integer branchId) {
+        for (int index = 0; index < branchComboBox.getItemCount(); index++) {
+
+            BranchComboItem item = branchComboBox.getItemAt(index);
+
+            if (branchId == null
+                    && item.id() == null) {
+
+                branchComboBox.setSelectedIndex(index);
+                return;
+            }
+
+            if (branchId != null
+                    && branchId.equals(item.id())) {
+
+                branchComboBox.setSelectedIndex(index);
+                return;
+            }
+        }
+
+        branchComboBox.setSelectedIndex(0);
     }
 
     private void saveUser() {
+        BranchComboItem selectedBranch = (BranchComboItem) branchComboBox.getSelectedItem();
+        Integer branchId = selectedBranch == null
+                ? null
+                : selectedBranch.id();
+
         UserFormData formData = new UserFormData(
                 usernameField
                         .getText()
                         .trim(),
 
                 new String(
-                        passwordField
-                                .getPassword()),
+                        passwordField.getPassword()),
 
                 new String(
-                        confirmPasswordField
-                                .getPassword()),
+                        confirmPasswordField.getPassword()),
 
                 fullNameField
                         .getText()
@@ -297,12 +374,13 @@ public class UserDialog extends JDialog {
                         .getSelectedItem(),
 
                 (UserStatus) statusComboBox
-                        .getSelectedItem());
+                        .getSelectedItem(),
+
+                branchId);
 
         try {
             if (editingUser == null) {
-                userService.createUser(
-                        formData);
+                userService.createUser(formData);
 
                 JOptionPane.showMessageDialog(
                         this,
@@ -329,6 +407,7 @@ public class UserDialog extends JDialog {
         } catch (
                 IllegalArgumentException
                 | IllegalStateException exception) {
+
             JOptionPane.showMessageDialog(
                     this,
                     exception.getMessage(),

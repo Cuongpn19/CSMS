@@ -83,6 +83,9 @@ public class UserService {
                         ? UserStatus.ACTIVE
                         : formData.status());
 
+        user.setBranchId(
+                formData.branchId());
+
         int userId = userDAO.insert(user);
 
         user.setId(userId);
@@ -136,10 +139,35 @@ public class UserService {
         existingUser.setStatus(
                 formData.status());
 
+        existingUser.setBranchId(
+                formData.branchId());
+
         userDAO.update(existingUser);
     }
 
-    public void toggleLock(
+    // public void toggleLock(
+    // int userId,
+    // int currentLoggedInUserId) {
+    // User user = userDAO.findById(userId)
+    // .orElseThrow(
+    // () -> new IllegalArgumentException(
+    // "Không tìm thấy tài khoản."));
+
+    // if (userId == currentLoggedInUserId) {
+    // throw new IllegalArgumentException(
+    // "Bạn không thể tự khóa tài khoản đang đăng nhập.");
+    // }
+
+    // UserStatus newStatus = user.getStatus() == UserStatus.INACTIVE
+    // ? UserStatus.ACTIVE
+    // : UserStatus.INACTIVE;
+
+    // userDAO.updateStatus(
+    // userId,
+    // newStatus);
+    // }
+
+    public void toggleStatus(
             int userId,
             int currentLoggedInUserId) {
         User user = userDAO.findById(userId)
@@ -149,12 +177,12 @@ public class UserService {
 
         if (userId == currentLoggedInUserId) {
             throw new IllegalArgumentException(
-                    "Bạn không thể tự khóa tài khoản đang đăng nhập.");
+                    "Bạn không thể tự vô hiệu hóa tài khoản đang đăng nhập.");
         }
 
-        UserStatus newStatus = user.getStatus() == UserStatus.INACTIVE
-                ? UserStatus.ACTIVE
-                : UserStatus.INACTIVE;
+        UserStatus newStatus = user.getStatus() == UserStatus.ACTIVE
+                ? UserStatus.INACTIVE
+                : UserStatus.ACTIVE;
 
         userDAO.updateStatus(
                 userId,
@@ -260,6 +288,13 @@ public class UserService {
         if (formData.status() == null) {
             throw new IllegalArgumentException(
                     "Vui lòng chọn trạng thái.");
+        }
+
+        if (formData.roleName() != RoleName.ADMIN
+                && formData.branchId() == null) {
+
+            throw new IllegalArgumentException(
+                    "Vui lòng chọn chi nhánh cho nhân viên.");
         }
 
         if (creating) {

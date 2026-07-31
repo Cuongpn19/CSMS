@@ -30,9 +30,14 @@ public class UserDAO {
                 r.name AS role_name,
                 u.status,
                 u.created_at,
-                u.updated_at
+                u.updated_at,
+                u.branch_id,
+                b.name AS branch_name
             FROM users u
-            JOIN roles r ON r.id = u.role_id
+            JOIN roles r
+                ON r.id = u.role_id
+            LEFT JOIN branches b
+                ON b.id = u.branch_id
             """;
 
     private static final String FIND_ALL_SQL = BASE_SELECT + """
@@ -74,7 +79,8 @@ public class UserDAO {
                 email,
                 phone,
                 role_id,
-                status
+                status,
+                branch_id
             )
             VALUES (
                 ?,
@@ -87,6 +93,7 @@ public class UserDAO {
                     FROM roles
                     WHERE name = ?
                 ),
+                ?,
                 ?
             )
             """;
@@ -103,7 +110,8 @@ public class UserDAO {
                     FROM roles
                     WHERE name = ?
                 ),
-                status = ?
+                status = ?,
+                branch_id = ?
             WHERE id = ?
             """;
 
@@ -316,6 +324,16 @@ public class UserDAO {
                     7,
                     user.getStatus().name());
 
+            if (user.getBranchId() == null) {
+                statement.setNull(
+                        8,
+                        java.sql.Types.INTEGER);
+            } else {
+                statement.setInt(
+                        8,
+                        user.getBranchId());
+            }
+
             int affectedRows = statement.executeUpdate();
 
             if (affectedRows == 0) {
@@ -371,8 +389,18 @@ public class UserDAO {
                     6,
                     user.getStatus().name());
 
+            if (user.getBranchId() == null) {
+                statement.setNull(
+                        7,
+                        java.sql.Types.INTEGER);
+            } else {
+                statement.setInt(
+                        7,
+                        user.getBranchId());
+            }
+
             statement.setInt(
-                    7,
+                    8,
                     user.getId());
 
             if (statement.executeUpdate() == 0) {
@@ -524,6 +552,17 @@ public class UserDAO {
         user.setStatus(
                 UserStatus.valueOf(
                         resultSet.getString("status")));
+
+        int branchId = resultSet.getInt("branch_id");
+
+        if (resultSet.wasNull()) {
+            user.setBranchId(null);
+        } else {
+            user.setBranchId(branchId);
+        }
+
+        user.setBranchName(
+                resultSet.getString("branch_name"));
 
         Timestamp createdAt = resultSet.getTimestamp("created_at");
 

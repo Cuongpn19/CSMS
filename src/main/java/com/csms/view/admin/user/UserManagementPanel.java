@@ -277,6 +277,8 @@ public class UserManagementPanel
 
         JButton lockButton = new JButton("Khóa/Mở khóa");
 
+        JButton statusButton = new JButton("Đổi trạng thái");
+
         JButton resetPasswordButton = new JButton("Đặt lại mật khẩu");
 
         editButton.addActionListener(
@@ -285,11 +287,15 @@ public class UserManagementPanel
         lockButton.addActionListener(
                 event -> toggleSelectedUserLock());
 
+        statusButton.addActionListener(
+                event -> toggleSelectedUserStatus());
+
         resetPasswordButton.addActionListener(
                 event -> openResetPasswordDialog());
 
         actionPanel.add(editButton);
         actionPanel.add(lockButton);
+        actionPanel.add(statusButton);
         actionPanel.add(resetPasswordButton);
 
         panel.add(
@@ -376,6 +382,7 @@ public class UserManagementPanel
                         "Số điện thoại",
                         "Vai trò",
                         "Trạng thái",
+                        "Chi nhánh",
                         "Ngày tạo"
                 },
                 0) {
@@ -494,6 +501,9 @@ public class UserManagementPanel
                                     .getDisplayName(),
                             user.getStatus()
                                     .getDisplayName(),
+                            user.getBranchName() == null
+                                    ? "Chưa phân chi nhánh"
+                                    : user.getBranchName(),
                             user.getCreatedAt() == null
                                     ? "-"
                                     : user.getCreatedAt()
@@ -578,7 +588,7 @@ public class UserManagementPanel
         }
 
         try {
-            userService.toggleLock(
+            userService.toggleStatus(
                     selectedUser.getId(),
                     getCurrentUserId());
 
@@ -587,6 +597,59 @@ public class UserManagementPanel
                     unlocking
                             ? "Mở khóa tài khoản thành công."
                             : "Khóa tài khoản thành công.",
+                    "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            loadUsers();
+
+        } catch (
+                IllegalArgumentException
+                | IllegalStateException exception) {
+            showError(
+                    exception.getMessage());
+        }
+    }
+
+    private void toggleSelectedUserStatus() {
+        User selectedUser = getSelectedUser();
+
+        if (selectedUser == null) {
+            showWarning(
+                    "Vui lòng chọn tài khoản cần thay đổi trạng thái.");
+            return;
+        }
+
+        boolean activating = selectedUser.getStatus() == UserStatus.INACTIVE;
+
+        String actionText = activating
+                ? "kích hoạt"
+                : "vô hiệu hóa";
+
+        int confirmation = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc muốn "
+                        + actionText
+                        + " tài khoản "
+                        + selectedUser.getUsername()
+                        + "?",
+                "Xác nhận",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+
+        if (confirmation != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            userService.toggleStatus(
+                    selectedUser.getId(),
+                    getCurrentUserId());
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    activating
+                            ? "Kích hoạt tài khoản thành công."
+                            : "Vô hiệu hóa tài khoản thành công.",
                     "Thành công",
                     JOptionPane.INFORMATION_MESSAGE);
 

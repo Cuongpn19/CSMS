@@ -11,5 +11,6 @@ public record UserFormData(
         String email,
         String phone,
         RoleName roleName,
-        UserStatus status) {
+        UserStatus status,
+        Integer branchId) {
 }

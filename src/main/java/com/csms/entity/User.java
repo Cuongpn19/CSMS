@@ -17,6 +17,8 @@ public class User {
     private RoleName roleName;
 
     private UserStatus status;
+    private Integer branchId;
+    private String branchName;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -102,6 +104,23 @@ public class User {
     public void setStatus(
             UserStatus status) {
         this.status = status;
+    }
+
+    public Integer getBranchId() {
+        return branchId;
+    }
+
+    public void setBranchId(Integer branchId) {
+        this.branchId = branchId;
+    }
+
+    public String getBranchName() {
+        return branchName;
+    }
+
+    public void setBranchName(
+            String branchName) {
+        this.branchName = branchName;
     }
 
     public LocalDateTime getCreatedAt() {
