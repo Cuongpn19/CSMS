@@ -88,4 +88,9 @@ public class Product {
     public void setStatus(ProductStatus status) {
         this.status = status;
     }
+
+    @Override
+    public String toString() {
+        return name + " - " + price + " đ";
+    }
 }

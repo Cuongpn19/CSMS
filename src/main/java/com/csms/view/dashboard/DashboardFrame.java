@@ -32,6 +32,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import com.csms.view.admin.recipe.RecipeManagementPanel;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -587,6 +588,10 @@ public class DashboardFrame extends JFrame {
                 contentPanel.add(
                                 new UserManagementPanel(),
                                 "users");
+
+                contentPanel.add(
+                                new RecipeManagementPanel(),
+                                "recipes");
 
                 contentPanel.add(
                                 createPlaceholderPage(

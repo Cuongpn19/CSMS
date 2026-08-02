@@ -17,6 +17,8 @@ import javax.swing.SwingConstants;
 import com.csms.view.payment.PaymentDialog;
 import com.csms.dto.ReceiptData;
 import com.csms.service.ReceiptService;
+import com.csms.service.RecipeService;
+// import com.csms.service.RecipeService;
 import com.csms.view.payment.ReceiptDialog;
 
 import javax.swing.JFrame;
@@ -240,8 +242,7 @@ public class OrderListPanel extends JPanel {
                 return;
             }
 
-            ReceiptData receiptData = receiptService.getReceiptData(
-                    orderId);
+            ReceiptData receiptData = receiptService.getReceiptData(orderId);
 
             JFrame owner = (JFrame) SwingUtilities
                     .getWindowAncestor(

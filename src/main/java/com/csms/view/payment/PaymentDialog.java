@@ -6,6 +6,7 @@ import com.csms.entity.Payment;
 import com.csms.entity.PaymentMethod;
 import com.csms.dto.ReceiptData;
 import com.csms.service.ReceiptService;
+import com.csms.service.RecipeService;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;

@@ -1,19 +1,13 @@
 package com.csms.entity;
 
-public enum IngredientUnit {
+public enum IngredientStatus {
 
-    GRAM("Gram"),
-    KILOGRAM("Kilogram"),
-    ML("Mililit"),
-    LITER("Lít"),
-    PIECE("Cái"),
-    PACK("Gói"),
-    BOX("Hộp"),
-    BOTTLE("Chai");
+    ACTIVE("Đang sử dụng"),
+    INACTIVE("Ngừng sử dụng");
 
     private final String displayName;
 
-    IngredientUnit(String displayName) {
+    IngredientStatus(String displayName) {
         this.displayName = displayName;
     }
 
