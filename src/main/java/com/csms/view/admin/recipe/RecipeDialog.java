@@ -241,8 +241,9 @@ public class RecipeDialog extends JDialog {
 
         unitField.setText(
                 ingredient == null
-                        ? ""
-                        : ingredient.getUnit());
+                        || ingredient.getUnit() == null
+                                ? ""
+                                : ingredient.getUnit().getDisplayName());
     }
 
     private void saveRecipe() {
@@ -287,7 +288,9 @@ public class RecipeDialog extends JDialog {
                 quantityRequired);
 
         recipe.setUnit(
-                ingredient.getUnit());
+                ingredient.getUnit() == null
+                        ? ""
+                        : ingredient.getUnit().getDisplayName());
 
         try {
             if (editingRecipe == null) {

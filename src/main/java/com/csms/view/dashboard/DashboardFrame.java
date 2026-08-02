@@ -13,6 +13,7 @@ import java.awt.Container;
 import com.csms.entity.RoleName;
 import com.csms.utils.SessionManager;
 import com.csms.view.admin.user.UserManagementPanel;
+import com.csms.view.admin.ingredient.IngredientManagementPanel;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -592,6 +593,10 @@ public class DashboardFrame extends JFrame {
                 contentPanel.add(
                                 new RecipeManagementPanel(),
                                 "recipes");
+
+                contentPanel.add(
+                                new IngredientManagementPanel(),
+                                "ingredients");
 
                 contentPanel.add(
                                 createPlaceholderPage(

@@ -7,13 +7,13 @@ public class Ingredient {
 
     private int id;
     private String name;
-    private String unit;
+    private IngredientUnit unit;
 
     private BigDecimal quantity;
     private BigDecimal minimumStock;
     private BigDecimal importPrice;
 
-    private String status;
+    private IngredientStatus status;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -38,12 +38,12 @@ public class Ingredient {
         this.name = name;
     }
 
-    public String getUnit() {
+    public IngredientUnit getUnit() {
         return unit;
     }
 
     public void setUnit(
-            String unit) {
+            IngredientUnit unit) {
         this.unit = unit;
     }
 
@@ -74,12 +74,12 @@ public class Ingredient {
         this.importPrice = importPrice;
     }
 
-    public String getStatus() {
+    public IngredientStatus getStatus() {
         return status;
     }
 
     public void setStatus(
-            String status) {
+            IngredientStatus status) {
         this.status = status;
     }
 
@@ -101,8 +101,20 @@ public class Ingredient {
         this.updatedAt = updatedAt;
     }
 
+    public boolean isLowStock() {
+        if (quantity == null || minimumStock == null) {
+            return false;
+        }
+
+        return quantity.compareTo(minimumStock) <= 0;
+    }
+
     @Override
     public String toString() {
-        return name + " (" + unit + ")";
+        String unitText = unit == null
+                ? ""
+                : unit.getDisplayName();
+
+        return name + " (" + unitText + ")";
     }
 }
