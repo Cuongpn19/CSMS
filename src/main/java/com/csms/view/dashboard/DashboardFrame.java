@@ -13,8 +13,10 @@ import java.awt.Container;
 import com.csms.entity.RoleName;
 import com.csms.utils.SessionManager;
 import com.csms.view.admin.user.UserManagementPanel;
+import com.csms.view.admin.vat.VatSettingPanel;
 import com.csms.view.admin.ingredient.IngredientManagementPanel;
 import com.csms.view.admin.branch.BranchManagementPanel;
+import com.csms.view.admin.vat.VatSettingPanel;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -602,6 +604,10 @@ public class DashboardFrame extends JFrame {
                 contentPanel.add(
                                 new BranchManagementPanel(),
                                 "branches");
+
+                contentPanel.add(
+                                new VatSettingPanel(),
+                                "vat");
 
                 contentPanel.add(
                                 createPlaceholderPage(

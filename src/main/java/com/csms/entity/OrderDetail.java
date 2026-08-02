@@ -11,6 +11,8 @@ public class OrderDetail {
     private BigDecimal unitPrice;
     private int quantity;
     private BigDecimal subtotal;
+    private BigDecimal vatRate;
+    private BigDecimal vatAmount;
     private String note;
 
     public OrderDetail() {
@@ -80,6 +82,22 @@ public class OrderDetail {
 
     public void setSubtotal(BigDecimal subtotal) {
         this.subtotal = subtotal;
+    }
+
+    public BigDecimal getVatRate() {
+        return vatRate;
+    }
+
+    public void setVatRate(BigDecimal vatRate) {
+        this.vatRate = vatRate;
+    }
+
+    public BigDecimal getVatAmount() {
+        return vatAmount;
+    }
+
+    public void setVatAmount(BigDecimal vatAmount) {
+        this.vatAmount = vatAmount;
     }
 
     public String getNote() {

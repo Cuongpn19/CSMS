@@ -19,6 +19,30 @@ import java.util.Optional;
 
 public class OrderDAO {
 
+    private static final String BASE_SELECT = """
+            SELECT
+                o.id,
+                o.order_code,
+                o.user_id,
+                u.full_name AS cashier_name,
+                o.table_id,
+                t.name AS table_name,
+                o.order_type,
+                o.status,
+                o.subtotal,
+                o.discount,
+                o.vat_amount,
+                o.total_amount,
+                o.note,
+                o.created_at,
+                o.updated_at
+            FROM orders o
+            JOIN users u
+                ON u.id = o.user_id
+            LEFT JOIN coffee_tables t
+                ON t.id = o.table_id
+            """;
+
     private static final String INSERT_ORDER_SQL = """
             INSERT INTO orders(
                 table_id,
@@ -28,23 +52,27 @@ public class OrderDAO {
                 status,
                 subtotal,
                 discount,
+                vat_amount,
                 total_amount,
                 note
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
     private static final String INSERT_DETAIL_SQL = """
             INSERT INTO order_details(
-                order_id,
-                product_id,
-                product_name,
-                unit_price,
-                quantity,
+                table_id,
+                cashier_id,
+                order_code,
+                order_type,
+                status,
                 subtotal,
+                discount,
+                vat_amount,
+                total_amount,
                 note
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
     private static final String FIND_ALL_SQL = """
@@ -59,6 +87,7 @@ public class OrderDAO {
                 o.status,
                 o.subtotal,
                 o.discount,
+                o.vat_amount,
                 o.total_amount,
                 o.note,
                 o.created_at
@@ -82,6 +111,7 @@ public class OrderDAO {
                 o.status,
                 o.subtotal,
                 o.discount,
+                o.vat_amount,
                 o.total_amount,
                 o.note,
                 o.created_at
@@ -94,18 +124,22 @@ public class OrderDAO {
             """;
 
     private static final String FIND_DETAILS_SQL = """
-            SELECT
-                id,
-                order_id,
-                product_id,
-                product_name,
-                unit_price,
-                quantity,
-                subtotal,
-                note
-            FROM order_details
-            WHERE order_id = ?
-            ORDER BY id
+                SELECT
+                od.id,
+                od.order_id,
+                od.product_id,
+                p.name AS product_name,
+                od.quantity,
+                od.unit_price,
+                od.subtotal,
+                od.vat_rate,
+                od.vat_amount,
+                od.note
+            FROM order_details od
+            JOIN products p
+                ON p.id = od.product_id
+            WHERE od.order_id = ?
+            ORDER BY od.id
             """;
 
     private static final String UPDATE_STATUS_SQL = """
@@ -401,14 +435,16 @@ public class OrderDAO {
             statement.setBigDecimal(
                     6,
                     order.getSubtotal());
-            statement.setBigDecimal(
-                    7,
-                    order.getDiscount());
+            statement.setBigDecimal(7, order.getSubtotalBeforeVat());
             statement.setBigDecimal(
                     8,
+                    order.getDiscount());
+            statement.setBigDecimal(9, order.getVatAmount());
+            statement.setBigDecimal(
+                    10,
                     order.getTotalAmount());
             statement.setString(
-                    9,
+                    11,
                     order.getNote());
 
             int affectedRows = statement.executeUpdate();
@@ -448,17 +484,23 @@ public class OrderDAO {
                 statement.setString(
                         3,
                         detail.getProductName());
-                statement.setBigDecimal(
-                        4,
-                        detail.getUnitPrice());
                 statement.setInt(
-                        5,
+                        4,
                         detail.getQuantity());
+                statement.setBigDecimal(
+                        5,
+                        detail.getUnitPrice());
                 statement.setBigDecimal(
                         6,
                         detail.getSubtotal());
-                statement.setString(
+                statement.setBigDecimal(
                         7,
+                        detail.getVatRate());
+                statement.setBigDecimal(
+                        7,
+                        detail.getVatAmount());
+                statement.setString(
+                        8,
                         detail.getNote());
 
                 statement.addBatch();
@@ -648,6 +690,13 @@ public class OrderDAO {
                     detail.setSubtotal(
                             resultSet.getBigDecimal(
                                     "subtotal"));
+                    detail.setVatRate(
+                            resultSet.getBigDecimal(
+                                    "vat_rate"));
+
+                    detail.setVatAmount(
+                            resultSet.getBigDecimal(
+                                    "vat_amount"));
                     detail.setNote(
                             resultSet.getString("note"));
 
@@ -706,6 +755,9 @@ public class OrderDAO {
                 resultSet.getBigDecimal("subtotal"));
         order.setDiscount(
                 resultSet.getBigDecimal("discount"));
+        order.setVatAmount(
+                resultSet.getBigDecimal(
+                        "vat_amount"));
         order.setTotalAmount(
                 resultSet.getBigDecimal("total_amount"));
         order.setNote(

@@ -16,7 +16,9 @@ public class Order {
     private OrderType orderType;
     private OrderStatus status;
     private BigDecimal subtotal = BigDecimal.ZERO;
+    private BigDecimal subtotalBeforeVat = BigDecimal.ZERO;
     private BigDecimal discount = BigDecimal.ZERO;
+    private BigDecimal vatAmount = BigDecimal.ZERO;
     private BigDecimal totalAmount = BigDecimal.ZERO;
     private String note;
     private LocalDateTime createdAt;
@@ -124,12 +126,29 @@ public class Order {
         this.subtotal = subtotal;
     }
 
+    public BigDecimal getSubtotalBeforeVat() {
+        return subtotalBeforeVat;
+    }
+
+    public void setSubtotalBeforeVat(
+            BigDecimal subtotalBeforeVat) {
+        this.subtotalBeforeVat = subtotalBeforeVat;
+    }
+
     public BigDecimal getDiscount() {
         return discount;
     }
 
     public void setDiscount(BigDecimal discount) {
         this.discount = discount;
+    }
+
+    public BigDecimal getVatAmount() {
+        return vatAmount;
+    }
+
+    public void setVatAmount(BigDecimal vatAmount) {
+        this.vatAmount = vatAmount;
     }
 
     public BigDecimal getTotalAmount() {
