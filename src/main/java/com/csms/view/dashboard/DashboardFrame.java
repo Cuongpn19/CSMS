@@ -17,6 +17,7 @@ import com.csms.view.admin.vat.VatSettingPanel;
 import com.csms.view.admin.ingredient.IngredientManagementPanel;
 import com.csms.view.admin.branch.BranchManagementPanel;
 import com.csms.view.admin.vat.VatSettingPanel;
+import com.csms.view.admin.backup.BackupManagementPanel;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -231,10 +232,17 @@ public class DashboardFrame extends JFrame {
 
                 sidebar.add(Box.createVerticalStrut(5));
 
-                sidebar.add(
-                                createMenuButton(
-                                                "Sao lưu dữ liệu",
-                                                "backup"));
+                if (SessionManager.getCurrentUser() != null
+                                && SessionManager
+                                                .getCurrentUser()
+                                                .getRoleName() == RoleName.ADMIN) {
+
+                        sidebar.add(
+                                        createMenuButton(
+                                                        "Sao lưu dữ liệu",
+                                                        "backup"));
+                }
+
                 sidebar.add(Box.createVerticalGlue());
 
                 /*
@@ -608,6 +616,10 @@ public class DashboardFrame extends JFrame {
                 contentPanel.add(
                                 new VatSettingPanel(),
                                 "vat");
+
+                contentPanel.add(
+                                new BackupManagementPanel(),
+                                "backup");
 
                 contentPanel.add(
                                 createPlaceholderPage(
