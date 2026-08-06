@@ -8,8 +8,10 @@ public class OrderDetail {
     private int orderId;
     private int productId;
     private String productName;
+
     private BigDecimal unitPrice;
     private int quantity;
+    private OrderItemStatus status;
     private BigDecimal subtotal;
     private BigDecimal vatRate;
     private BigDecimal vatAmount;
@@ -74,6 +76,15 @@ public class OrderDetail {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public OrderItemStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(
+            OrderItemStatus status) {
+        this.status = status;
     }
 
     public BigDecimal getSubtotal() {

@@ -1,23 +1,34 @@
 package com.csms.view.dashboard;
 
+import com.csms.entity.RoleName;
 import com.csms.entity.User;
 import com.csms.utils.SessionManager;
+
 import com.csms.view.login.LoginFrame;
 import com.csms.view.order.OrderListPanel;
 import com.csms.view.order.OrderPanel;
 import com.csms.view.product.ProductPanel;
+
+import com.csms.dto.OrderResult;
+import com.csms.entity.TableDashboardItem;
+import com.csms.service.TableOrderService;
+import com.csms.view.operation.dashboard.TableDashboardPanel;
+import com.csms.view.waiter.dialog.CreateOrderDialog;
+import com.csms.view.waiter.dialog.OrderDetailDialog;
+import com.csms.view.operation.dialog.TableDetailDialog;
+
 import com.csms.view.dashboard.DashboardPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import java.awt.Container;
-import com.csms.entity.RoleName;
-import com.csms.utils.SessionManager;
 import com.csms.view.admin.user.UserManagementPanel;
 import com.csms.view.admin.vat.VatSettingPanel;
 import com.csms.view.admin.ingredient.IngredientManagementPanel;
 import com.csms.view.admin.branch.BranchManagementPanel;
-import com.csms.view.admin.vat.VatSettingPanel;
 import com.csms.view.admin.backup.BackupManagementPanel;
+import com.csms.view.operation.barista.BaristaDashboardPanel;
+import com.csms.view.operation.common.DashboardMode;
+import com.csms.view.operation.common.TableDashboardListener;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -93,8 +104,28 @@ public class DashboardFrame extends JFrame {
 
         private static final Color NORMAL_FOREGROUND = new Color(221, 235, 245);
 
+        private static final String PAGE_DASHBOARD = "dashboard";
+        private static final String PAGE_USERS = "users";
+        private static final String PAGE_PRODUCTS = "product";
+        private static final String PAGE_RECIPES = "recipes";
+        private static final String PAGE_INGREDIENTS = "ingredients";
+        private static final String PAGE_BRANCHES = "branches";
+        private static final String PAGE_VAT = "vat";
+        private static final String PAGE_BACKUP = "backup";
+        private static final String PAGE_ORDER = "order";
+        private static final String PAGE_ORDER_LIST = "order-list";
+        private static final String PAGE_TABLE_DASHBOARD = "tableDashboard";
+        private static final String PAGE_BARISTA_QUEUE = "baristaQueue";
+        private static final String PAGE_REPORT = "report";
+
         private final CardLayout contentLayout;
         private final JPanel contentPanel;
+
+        private final RoleName currentRole;
+
+        private TableDashboardPanel tableDashboardPanel;
+
+        private final TableOrderService tableOrderService = new TableOrderService();
 
         private final Map<String, MenuButton> menuButtons;
 
@@ -106,11 +137,28 @@ public class DashboardFrame extends JFrame {
                 contentPanel = new JPanel(contentLayout);
                 menuButtons = new LinkedHashMap<>();
 
-                activePage = "dashboard";
+                User currentUser = SessionManager.getCurrentUser();
+
+                if (currentUser == null
+                                || currentUser.getRoleName() == null) {
+
+                        throw new IllegalStateException(
+                                        "Không tìm thấy phiên đăng nhập hợp lệ.");
+                }
+
+                currentRole = currentUser.getRoleName();
+
+                /*
+                 * Phải gọi getDefaultPage(), không gán cứng dashboard.
+                 */
+                activePage = getDefaultPage();
 
                 initializeFrame();
                 initializeComponents();
-                navigateTo("dashboard", "Tổng quan");
+
+                navigateTo(
+                                activePage,
+                                getPageTitle(activePage));
         }
 
         private void initializeFrame() {
@@ -148,7 +196,7 @@ public class DashboardFrame extends JFrame {
                                 new Dimension(250, 0));
 
                 sidebar.setBackground(
-                                new Color(15, 67, 105));
+                                SIDEBAR_BACKGROUND);
 
                 sidebar.setLayout(
                                 new BoxLayout(
@@ -157,97 +205,34 @@ public class DashboardFrame extends JFrame {
 
                 sidebar.setBorder(
                                 new EmptyBorder(
-                                                20,
+                                                18,
                                                 14,
                                                 16,
                                                 14));
 
                 /*
-                 * Logo hệ thống.
+                 * Logo luôn nằm trên cùng.
                  */
                 JPanel logoPanel = createLogoPanel();
-                logoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+                logoPanel.setAlignmentX(
+                                Component.LEFT_ALIGNMENT);
 
                 sidebar.add(logoPanel);
-                sidebar.add(Box.createVerticalStrut(26));
+                sidebar.add(
+                                Box.createVerticalStrut(24));
 
                 /*
-                 * Nhóm vận hành.
+                 * Chỉ thêm menu đúng với role hiện tại.
                  */
-
-                sidebar.add(
-                                createMenuButton(
-                                                "Tổng quan",
-                                                "dashboard"));
-
-                sidebar.add(Box.createVerticalStrut(5));
-
-                if (SessionManager.getCurrentUser()
-                                .getRoleName() == RoleName.ADMIN) {
-
-                        sidebar.add(
-                                        createMenuButton(
-                                                        "Người dùng",
-                                                        "users"));
-                }
-
-                sidebar.add(Box.createVerticalStrut(5));
-
-                sidebar.add(
-                                createMenuButton(
-                                                "Menu sản phẩm",
-                                                "product"));
-
-                sidebar.add(Box.createVerticalStrut(5));
-
-                sidebar.add(
-                                createMenuButton(
-                                                "Công thức",
-                                                "recipes"));
-
-                sidebar.add(Box.createVerticalStrut(5));
-
-                sidebar.add(
-                                createMenuButton(
-                                                "Nguyên liệu",
-                                                "ingredients"));
-
-                sidebar.add(Box.createVerticalStrut(22));
-
-                sidebar.add(
-                                createSidebarSectionTitle(
-                                                "QUẢN LÝ HỆ THỐNG"));
-
-                sidebar.add(
-                                createMenuButton(
-                                                "Chi nhánh",
-                                                "branches"));
-
-                sidebar.add(Box.createVerticalStrut(5));
-
-                sidebar.add(
-                                createMenuButton(
-                                                "Cấu hình VAT",
-                                                "vat"));
-
-                sidebar.add(Box.createVerticalStrut(5));
-
-                if (SessionManager.getCurrentUser() != null
-                                && SessionManager
-                                                .getCurrentUser()
-                                                .getRoleName() == RoleName.ADMIN) {
-
-                        sidebar.add(
-                                        createMenuButton(
-                                                        "Sao lưu dữ liệu",
-                                                        "backup"));
-                }
-
-                sidebar.add(Box.createVerticalGlue());
+                addRoleMenus(sidebar);
 
                 /*
-                 * Đường phân cách phía trên tài khoản.
+                 * Đẩy thông tin người dùng xuống cuối.
                  */
+                sidebar.add(
+                                Box.createVerticalGlue());
+
                 JSeparator separator = new JSeparator();
 
                 separator.setMaximumSize(
@@ -256,16 +241,25 @@ public class DashboardFrame extends JFrame {
                                                 1));
 
                 separator.setForeground(
-                                new Color(255, 255, 255, 35));
+                                new Color(
+                                                255,
+                                                255,
+                                                255,
+                                                35));
 
                 separator.setBackground(
-                                new Color(255, 255, 255, 35));
+                                new Color(
+                                                255,
+                                                255,
+                                                255,
+                                                35));
 
                 separator.setAlignmentX(
                                 Component.LEFT_ALIGNMENT);
 
                 sidebar.add(separator);
-                sidebar.add(Box.createVerticalStrut(14));
+                sidebar.add(
+                                Box.createVerticalStrut(14));
 
                 JPanel userPanel = createUserSidebarPanel();
 
@@ -273,8 +267,8 @@ public class DashboardFrame extends JFrame {
                                 Component.LEFT_ALIGNMENT);
 
                 sidebar.add(userPanel);
-
-                sidebar.add(Box.createVerticalStrut(10));
+                sidebar.add(
+                                Box.createVerticalStrut(10));
 
                 JButton logoutButton = createLogoutButton();
 
@@ -284,6 +278,258 @@ public class DashboardFrame extends JFrame {
                 sidebar.add(logoutButton);
 
                 return sidebar;
+        }
+
+        private void addRoleMenus(
+                        JPanel sidebar) {
+
+                switch (currentRole) {
+                        case ADMIN ->
+                                addAdminMenus(sidebar);
+
+                        case MANAGER ->
+                                addManagerMenus(sidebar);
+
+                        case WAITER ->
+                                addWaiterMenus(sidebar);
+
+                        case CASHIER ->
+                                addCashierMenus(sidebar);
+
+                        case BARISTA ->
+                                addBaristaMenus(sidebar);
+
+                        default ->
+                                addFallbackMenus(sidebar);
+                }
+        }
+
+        private void addAdminMenus(
+                        JPanel sidebar) {
+
+                addSection(
+                                sidebar,
+                                "VẬN HÀNH");
+
+                addSidebarMenu(
+                                sidebar,
+                                "Tổng quan",
+                                PAGE_DASHBOARD);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Đơn hàng",
+                                PAGE_ORDER_LIST);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Người dùng",
+                                PAGE_USERS);
+
+                addSection(
+                                sidebar,
+                                "QUẢN LÝ SẢN PHẨM");
+
+                addSidebarMenu(
+                                sidebar,
+                                "Menu sản phẩm",
+                                PAGE_PRODUCTS);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Công thức",
+                                PAGE_RECIPES);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Nguyên liệu",
+                                PAGE_INGREDIENTS);
+
+                addSection(
+                                sidebar,
+                                "QUẢN LÝ HỆ THỐNG");
+
+                addSidebarMenu(
+                                sidebar,
+                                "Chi nhánh",
+                                PAGE_BRANCHES);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Cấu hình VAT",
+                                PAGE_VAT);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Sao lưu dữ liệu",
+                                PAGE_BACKUP);
+        }
+
+        private void addManagerMenus(
+                        JPanel sidebar) {
+
+                addSection(
+                                sidebar,
+                                "VẬN HÀNH");
+
+                addSidebarMenu(
+                                sidebar,
+                                "Dashboard bàn",
+                                PAGE_TABLE_DASHBOARD);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Đơn hàng",
+                                PAGE_ORDER_LIST);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Bán hàng",
+                                PAGE_ORDER);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Hàng đợi pha chế",
+                                PAGE_BARISTA_QUEUE);
+
+                addSection(
+                                sidebar,
+                                "QUẢN LÝ SẢN PHẨM");
+
+                addSidebarMenu(
+                                sidebar,
+                                "Menu sản phẩm",
+                                PAGE_PRODUCTS);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Công thức",
+                                PAGE_RECIPES);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Nguyên liệu",
+                                PAGE_INGREDIENTS);
+
+                addSection(
+                                sidebar,
+                                "QUẢN LÝ HỆ THỐNG");
+
+                addSidebarMenu(
+                                sidebar,
+                                "Chi nhánh",
+                                PAGE_BRANCHES);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Cấu hình VAT",
+                                PAGE_VAT);
+        }
+
+        private void addWaiterMenus(
+                        JPanel sidebar) {
+
+                addSection(
+                                sidebar,
+                                "PHỤC VỤ");
+
+                addSidebarMenu(
+                                sidebar,
+                                "Dashboard bàn",
+                                PAGE_TABLE_DASHBOARD);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Đơn hàng",
+                                PAGE_ORDER_LIST);
+        }
+
+        private void addCashierMenus(
+                        JPanel sidebar) {
+
+                addSection(
+                                sidebar,
+                                "THU NGÂN");
+
+                addSidebarMenu(
+                                sidebar,
+                                "Đơn hàng",
+                                PAGE_ORDER_LIST);
+
+                addSidebarMenu(
+                                sidebar,
+                                "Bán hàng",
+                                PAGE_ORDER);
+        }
+
+        private void addBaristaMenus(
+                        JPanel sidebar) {
+
+                addSection(
+                                sidebar,
+                                "PHA CHẾ");
+
+                addSidebarMenu(
+                                sidebar,
+                                "Hàng đợi pha chế",
+                                PAGE_BARISTA_QUEUE);
+        }
+
+        private void addFallbackMenus(
+                        JPanel sidebar) {
+
+                addSection(
+                                sidebar,
+                                "HỆ THỐNG");
+
+                JLabel warningLabel = new JLabel(
+                                "Không xác định quyền");
+
+                warningLabel.setForeground(
+                                new Color(
+                                                255,
+                                                205,
+                                                205));
+
+                warningLabel.setBorder(
+                                new EmptyBorder(
+                                                8,
+                                                12,
+                                                8,
+                                                12));
+
+                warningLabel.setAlignmentX(
+                                Component.LEFT_ALIGNMENT);
+
+                sidebar.add(warningLabel);
+        }
+
+        private void addSection(
+                        JPanel sidebar,
+                        String title) {
+
+                if (sidebar.getComponentCount() > 1) {
+                        sidebar.add(
+                                        Box.createVerticalStrut(14));
+                }
+
+                sidebar.add(
+                                createSidebarSectionTitle(
+                                                title));
+        }
+
+        private void addSidebarMenu(
+                        JPanel sidebar,
+                        String text,
+                        String pageName) {
+
+                sidebar.add(
+                                createMenuButton(
+                                                text,
+                                                pageName));
+
+                sidebar.add(
+                                Box.createVerticalStrut(4));
         }
 
         private JPanel createLogoPanel() {
@@ -333,8 +579,8 @@ public class DashboardFrame extends JFrame {
                                 : currentUser.getFullName();
 
                 String role = currentUser == null
-                                ? "GUEST"
-                                : String.valueOf(
+                                ? "Khách"
+                                : getRoleDisplayName(
                                                 currentUser.getRoleName());
 
                 RoundedPanel userPanel = new RoundedPanel(
@@ -414,6 +660,34 @@ public class DashboardFrame extends JFrame {
                 return userPanel;
         }
 
+        private String getRoleDisplayName(
+                        RoleName roleName) {
+
+                if (roleName == null) {
+                        return "Không xác định";
+                }
+
+                return switch (roleName) {
+                        case ADMIN ->
+                                "Quản trị viên";
+
+                        case MANAGER ->
+                                "Quản lý";
+
+                        case WAITER ->
+                                "Phục vụ";
+
+                        case CASHIER ->
+                                "Thu ngân";
+
+                        case BARISTA ->
+                                "Pha chế";
+
+                        default ->
+                                roleName.name();
+                };
+        }
+
         private String getInitials(String fullName) {
                 if (fullName == null
                                 || fullName.isBlank()
@@ -472,7 +746,7 @@ public class DashboardFrame extends JFrame {
                                                 26));
 
                 JLabel breadcrumbLabel = new JLabel(
-                                "CSMS / Trang quản trị");
+                                getRoleBreadcrumb());
 
                 breadcrumbLabel.setForeground(TEXT_COLOR);
 
@@ -557,7 +831,12 @@ public class DashboardFrame extends JFrame {
                                 });
 
                 rightPanel.add(dateLabel);
-                rightPanel.add(quickOrderButton);
+
+                if (isCashier()) {
+
+                        rightPanel.add(
+                                        quickOrderButton);
+                }
 
                 headerPanel.add(
                                 titlePanel,
@@ -570,70 +849,226 @@ public class DashboardFrame extends JFrame {
                 return headerPanel;
         }
 
+        private String getRoleBreadcrumb() {
+                return switch (currentRole) {
+                        case ADMIN ->
+                                "CSMS / Quản trị viên";
+
+                        case MANAGER ->
+                                "CSMS / Quản lý";
+
+                        case WAITER ->
+                                "CSMS / Phục vụ";
+
+                        case CASHIER ->
+                                "CSMS / Thu ngân";
+
+                        case BARISTA ->
+                                "CSMS / Pha chế";
+
+                        default ->
+                                "CSMS";
+                };
+        }
+
         private JPanel createContentPanel() {
                 contentPanel.setBackground(BACKGROUND);
 
-                contentPanel.add(
-                                createDashboardPage(),
-                                "dashboard");
+                if (hasRole(
+                                RoleName.MANAGER,
+                                RoleName.BARISTA)) {
 
-                contentPanel.add(
-                                wrapPage(new ProductPanel()),
-                                "product");
+                        contentPanel.add(
+                                        new BaristaDashboardPanel(),
+                                        PAGE_BARISTA_QUEUE);
+                }
 
-                contentPanel.add(
-                                wrapPage(new OrderPanel()),
-                                "order");
+                if (hasRole(
+                                RoleName.WAITER,
+                                RoleName.MANAGER)) {
+                        DashboardMode dashboardMode = isWaiter()
+                                        ? DashboardMode.WAITER
+                                        : DashboardMode.MANAGER;
 
-                contentPanel.add(
-                                wrapPage(new OrderListPanel()),
-                                "order-list");
+                        tableDashboardPanel = new TableDashboardPanel(
+                                        dashboardMode,
+                                        new TableDashboardListener() {
 
-                contentPanel.add(
-                                new DashboardPanel(),
-                                "dashboard");
+                                                @Override
+                                                public void onCreateOrderRequested(
+                                                                TableDashboardItem item) {
+                                                        if (!isWaiter()) {
+                                                                throw new SecurityException(
+                                                                                "Manager không có quyền tạo đơn.");
+                                                        }
 
-                contentPanel.add(
-                                new DashboardPanel(),
-                                "overview");
+                                                        openCreateOrderDialog(item);
+                                                }
 
-                contentPanel.add(
-                                new UserManagementPanel(),
-                                "users");
+                                                @Override
+                                                public void onViewTableRequested(
+                                                                TableDashboardItem item) {
+                                                        openTableDetailDialog(
+                                                                        item,
+                                                                        dashboardMode);
+                                                }
+                                        });
 
-                contentPanel.add(
-                                new RecipeManagementPanel(),
-                                "recipes");
+                        contentPanel.add(
+                                        tableDashboardPanel,
+                                        PAGE_TABLE_DASHBOARD);
+                }
 
-                contentPanel.add(
-                                new IngredientManagementPanel(),
-                                "ingredients");
+                if (isBarista()) {
+                        contentPanel.add(
+                                        new BaristaDashboardPanel(),
+                                        PAGE_BARISTA_QUEUE);
+                }
 
-                contentPanel.add(
-                                new BranchManagementPanel(),
-                                "branches");
+                if (hasRole(
+                                RoleName.ADMIN,
+                                RoleName.MANAGER,
+                                RoleName.CASHIER)) {
 
-                contentPanel.add(
-                                new VatSettingPanel(),
-                                "vat");
+                        contentPanel.add(
+                                        wrapPage(
+                                                        new OrderPanel()),
+                                        PAGE_ORDER);
+                }
 
-                contentPanel.add(
-                                new BackupManagementPanel(),
-                                "backup");
+                if (hasRole(
+                                RoleName.ADMIN,
+                                RoleName.MANAGER,
+                                RoleName.WAITER,
+                                RoleName.CASHIER)) {
 
-                contentPanel.add(
-                                createPlaceholderPage(
-                                                "Quản lý nhân viên",
-                                                "Quản lý tài khoản, vai trò và ca làm việc."),
-                                "employee");
+                        contentPanel.add(
+                                        wrapPage(
+                                                        new OrderListPanel()),
+                                        PAGE_ORDER_LIST);
+                }
 
-                contentPanel.add(
-                                createPlaceholderPage(
-                                                "Báo cáo và thống kê",
-                                                "Theo dõi doanh thu, đơn hàng và hiệu quả bán hàng."),
-                                "report");
+                if (hasRole(
+                                RoleName.ADMIN,
+                                RoleName.MANAGER,
+                                RoleName.BARISTA)) {
+
+                        contentPanel.add(
+                                        new BaristaDashboardPanel(),
+                                        PAGE_BARISTA_QUEUE);
+                }
+
+                if (isAdmin()) {
+                        contentPanel.add(
+                                        new UserManagementPanel(),
+                                        PAGE_USERS);
+                }
+
+                if (hasRole(
+                                RoleName.ADMIN,
+                                RoleName.MANAGER)) {
+
+                        contentPanel.add(
+                                        wrapPage(
+                                                        new ProductPanel()),
+                                        PAGE_PRODUCTS);
+
+                        contentPanel.add(
+                                        new RecipeManagementPanel(),
+                                        PAGE_RECIPES);
+
+                        contentPanel.add(
+                                        new IngredientManagementPanel(),
+                                        PAGE_INGREDIENTS);
+
+                        contentPanel.add(
+                                        new BranchManagementPanel(),
+                                        PAGE_BRANCHES);
+
+                        contentPanel.add(
+                                        new VatSettingPanel(),
+                                        PAGE_VAT);
+                }
+
+                if (isAdmin()) {
+                        contentPanel.add(
+                                        new BackupManagementPanel(),
+                                        PAGE_BACKUP);
+                }
 
                 return contentPanel;
+        }
+
+        private void openCreateOrderDialog(
+                        TableDashboardItem tableItem) {
+
+                CreateOrderDialog dialog = new CreateOrderDialog(
+                                this,
+                                tableItem,
+                                request -> {
+                                        OrderResult result = tableOrderService
+                                                        .createAndSendOrder(
+                                                                        request);
+
+                                        JOptionPane.showMessageDialog(
+                                                        this,
+                                                        result.message()
+                                                                        + "\nMã đơn: "
+                                                                        + result.orderCode(),
+                                                        "Thành công",
+                                                        JOptionPane.INFORMATION_MESSAGE);
+                                });
+
+                dialog.setVisible(true);
+
+                if (dialog.isSubmitted()
+                                && tableDashboardPanel != null) {
+
+                        tableDashboardPanel.loadDashboard();
+                }
+        }
+
+        private void openTableDetailDialog(
+                        TableDashboardItem tableItem,
+                        DashboardMode dashboardMode) {
+                if (tableItem == null) {
+                        return;
+                }
+
+                TableDetailDialog dialog = new TableDetailDialog(
+                                this,
+                                tableItem.getTableId(),
+                                dashboardMode,
+                                tableDashboardPanel::loadDashboard);
+
+                dialog.setVisible(true);
+
+                tableDashboardPanel.loadDashboard();
+        }
+
+        private void openOrderDetailDialog(
+                        TableDashboardItem tableItem) {
+                if (tableItem == null
+                                || tableItem.getOrderId() == null) {
+
+                        JOptionPane.showMessageDialog(
+                                        this,
+                                        "Không tìm thấy đơn hàng của bàn.",
+                                        "Thông báo",
+                                        JOptionPane.WARNING_MESSAGE);
+
+                        return;
+                }
+
+                OrderDetailDialog dialog = new OrderDetailDialog(
+                                this,
+                                tableItem.getOrderId());
+
+                dialog.setVisible(true);
+
+                if (tableDashboardPanel != null) {
+                        tableDashboardPanel.loadDashboard();
+                }
         }
 
         private JPanel wrapPage(JPanel page) {
@@ -1315,236 +1750,40 @@ public class DashboardFrame extends JFrame {
                 return label;
         }
 
-        private JButton createSidebarMenuButton(
-                        String text,
-                        String cardName,
-                        boolean selected) {
+        private boolean hasRole(RoleName... allowedRoles) {
+                if (currentRole == null
+                                || allowedRoles == null) {
 
-                JButton button = new JButton(text);
-
-                button.setName(cardName);
-
-                button.setHorizontalAlignment(
-                                SwingConstants.LEFT);
-
-                button.setFont(
-                                new Font(
-                                                "Segoe UI",
-                                                selected
-                                                                ? Font.BOLD
-                                                                : Font.PLAIN,
-                                                14));
-
-                button.setForeground(
-                                selected
-                                                ? Color.WHITE
-                                                : new Color(
-                                                                221,
-                                                                235,
-                                                                245));
-
-                button.setBackground(
-                                selected
-                                                ? new Color(
-                                                                26,
-                                                                139,
-                                                                209)
-                                                : new Color(
-                                                                15,
-                                                                67,
-                                                                105));
-
-                button.setMaximumSize(
-                                new Dimension(
-                                                Integer.MAX_VALUE,
-                                                44));
-
-                button.setPreferredSize(
-                                new Dimension(
-                                                220,
-                                                44));
-
-                button.setMinimumSize(
-                                new Dimension(
-                                                180,
-                                                44));
-
-                button.setAlignmentX(
-                                Component.LEFT_ALIGNMENT);
-
-                button.setBorder(
-                                BorderFactory.createCompoundBorder(
-                                                selected
-                                                                ? BorderFactory.createMatteBorder(
-                                                                                0,
-                                                                                4,
-                                                                                0,
-                                                                                0,
-                                                                                new Color(
-                                                                                                124,
-                                                                                                211,
-                                                                                                255))
-                                                                : BorderFactory.createEmptyBorder(),
-                                                new EmptyBorder(
-                                                                0,
-                                                                selected ? 13 : 17,
-                                                                0,
-                                                                10)));
-
-                button.setFocusPainted(false);
-                button.setBorderPainted(true);
-                button.setContentAreaFilled(true);
-                button.setOpaque(true);
-
-                button.setCursor(
-                                Cursor.getPredefinedCursor(
-                                                Cursor.HAND_CURSOR));
-
-                button.putClientProperty(
-                                "menu.cardName",
-                                cardName);
-
-                button.putClientProperty(
-                                "menu.selected",
-                                selected);
-
-                button.addMouseListener(
-                                new MouseAdapter() {
-
-                                        @Override
-                                        public void mouseEntered(
-                                                        MouseEvent event) {
-
-                                                boolean isSelected = Boolean.TRUE.equals(
-                                                                button.getClientProperty(
-                                                                                "menu.selected"));
-
-                                                if (!isSelected) {
-                                                        button.setBackground(
-                                                                        new Color(
-                                                                                        22,
-                                                                                        87,
-                                                                                        132));
-
-                                                        button.setForeground(
-                                                                        Color.WHITE);
-                                                }
-                                        }
-
-                                        @Override
-                                        public void mouseExited(
-                                                        MouseEvent event) {
-
-                                                boolean isSelected = Boolean.TRUE.equals(
-                                                                button.getClientProperty(
-                                                                                "menu.selected"));
-
-                                                if (!isSelected) {
-                                                        button.setBackground(
-                                                                        new Color(
-                                                                                        15,
-                                                                                        67,
-                                                                                        105));
-
-                                                        button.setForeground(
-                                                                        new Color(
-                                                                                        221,
-                                                                                        235,
-                                                                                        245));
-                                                }
-                                        }
-                                });
-
-                button.addActionListener(event -> {
-                        setSelectedSidebarButton(button);
-
-                        /*
-                         * Thay showCard(cardName) bằng method chuyển trang
-                         * đang có trong DashboardFrame của bạn.
-                         */
-                        navigateTo(
-                                        cardName,
-                                        getPageTitle(cardName));
-                });
-
-                return button;
-        }
-
-        private void setSelectedSidebarButton(
-                        JButton selectedButton) {
-
-                Container parent = selectedButton.getParent();
-
-                for (Component component : parent.getComponents()) {
-
-                        if (!(component instanceof JButton button)) {
-                                continue;
-                        }
-
-                        boolean selected = button == selectedButton;
-
-                        button.putClientProperty(
-                                        "menu.selected",
-                                        selected);
-
-                        button.setFont(
-                                        new Font(
-                                                        "Segoe UI",
-                                                        selected
-                                                                        ? Font.BOLD
-                                                                        : Font.PLAIN,
-                                                        14));
-
-                        button.setForeground(
-                                        selected
-                                                        ? Color.WHITE
-                                                        : new Color(
-                                                                        221,
-                                                                        235,
-                                                                        245));
-
-                        button.setBackground(
-                                        selected
-                                                        ? new Color(
-                                                                        26,
-                                                                        139,
-                                                                        209)
-                                                        : new Color(
-                                                                        15,
-                                                                        67,
-                                                                        105));
-
-                        button.setBorder(
-                                        BorderFactory.createCompoundBorder(
-                                                        selected
-                                                                        ? BorderFactory
-                                                                                        .createMatteBorder(
-                                                                                                        0,
-                                                                                                        4,
-                                                                                                        0,
-                                                                                                        0,
-                                                                                                        new Color(
-                                                                                                                        124,
-                                                                                                                        211,
-                                                                                                                        255))
-                                                                        : BorderFactory
-                                                                                        .createEmptyBorder(),
-                                                        new EmptyBorder(
-                                                                        0,
-                                                                        selected ? 13 : 17,
-                                                                        0,
-                                                                        10)));
+                        return false;
                 }
 
-                parent.revalidate();
-                parent.repaint();
+                for (RoleName role : allowedRoles) {
+                        if (currentRole == role) {
+                                return true;
+                        }
+                }
+
+                return false;
         }
 
         private boolean isAdmin() {
-                return SessionManager.getCurrentUser() != null
-                                && SessionManager
-                                                .getCurrentUser()
-                                                .getRoleName() == RoleName.ADMIN;
+                return hasRole(RoleName.ADMIN);
+        }
+
+        private boolean isManager() {
+                return hasRole(RoleName.MANAGER);
+        }
+
+        private boolean isWaiter() {
+                return hasRole(RoleName.WAITER);
+        }
+
+        private boolean isCashier() {
+                return hasRole(RoleName.CASHIER);
+        }
+
+        private boolean isBarista() {
+                return hasRole(RoleName.BARISTA);
         }
 
         private MenuButton createMenuButton(
@@ -1590,6 +1829,16 @@ public class DashboardFrame extends JFrame {
                         String pageName,
                         String pageTitle) {
 
+                if (!canAccessPage(pageName)) {
+                        JOptionPane.showMessageDialog(
+                                        this,
+                                        "Bạn không có quyền truy cập chức năng này.",
+                                        "Từ chối truy cập",
+                                        JOptionPane.WARNING_MESSAGE);
+
+                        return;
+                }
+
                 activePage = pageName;
 
                 contentLayout.show(
@@ -1597,7 +1846,8 @@ public class DashboardFrame extends JFrame {
                                 pageName);
 
                 if (pageTitleLabel != null) {
-                        pageTitleLabel.setText(pageTitle);
+                        pageTitleLabel.setText(
+                                        pageTitle);
                 }
 
                 menuButtons.forEach(
@@ -1605,16 +1855,128 @@ public class DashboardFrame extends JFrame {
                                                 name.equals(activePage)));
         }
 
-        private String getPageTitle(String pageName) {
+        private boolean canAccessPage(
+                        String pageName) {
+
+                if (pageName == null) {
+                        return false;
+                }
+
                 return switch (pageName) {
-                        case "dashboard" -> "Tổng quan";
-                        case "order" -> "Bán hàng";
-                        case "order-list" -> "Danh sách đơn";
-                        case "product" -> "Quản lý sản phẩm";
-                        case "customer" -> "Quản lý khách hàng";
-                        case "employee" -> "Quản lý nhân viên";
-                        case "report" -> "Báo cáo và thống kê";
-                        default -> "CSMS";
+                        case PAGE_DASHBOARD ->
+                                hasRole(
+                                                RoleName.ADMIN,
+                                                RoleName.MANAGER);
+
+                        case PAGE_TABLE_DASHBOARD ->
+                                hasRole(
+                                                RoleName.WAITER,
+                                                RoleName.MANAGER);
+
+                        case PAGE_ORDER ->
+                                hasRole(
+                                                RoleName.ADMIN,
+                                                RoleName.MANAGER,
+                                                RoleName.CASHIER);
+
+                        case PAGE_ORDER_LIST ->
+                                hasRole(
+                                                RoleName.ADMIN,
+                                                RoleName.MANAGER,
+                                                RoleName.WAITER,
+                                                RoleName.CASHIER);
+
+                        // case PAGE_BARISTA_QUEUE ->
+                        // hasRole(
+                        // RoleName.ADMIN,
+                        // RoleName.MANAGER,
+                        // RoleName.BARISTA);
+
+                        case PAGE_BARISTA_QUEUE ->
+                                isBarista();
+
+                        case PAGE_USERS,
+                                        PAGE_BACKUP ->
+                                isAdmin();
+
+                        case PAGE_PRODUCTS,
+                                        PAGE_RECIPES,
+                                        PAGE_INGREDIENTS,
+                                        PAGE_BRANCHES,
+                                        PAGE_VAT,
+                                        PAGE_REPORT ->
+                                hasRole(
+                                                RoleName.ADMIN,
+                                                RoleName.MANAGER);
+
+                        default -> false;
+                };
+        }
+
+        private String getPageTitle(
+                        String pageName) {
+
+                return switch (pageName) {
+                        case PAGE_DASHBOARD ->
+                                "Tổng quan";
+
+                        case PAGE_TABLE_DASHBOARD ->
+                                "Dashboard bàn";
+
+                        case PAGE_ORDER ->
+                                "Bán hàng";
+
+                        case PAGE_ORDER_LIST ->
+                                "Đơn hàng";
+
+                        case PAGE_BARISTA_QUEUE ->
+                                "Hàng đợi pha chế";
+
+                        case PAGE_USERS ->
+                                "Người dùng";
+
+                        case PAGE_PRODUCTS ->
+                                "Menu sản phẩm";
+
+                        case PAGE_RECIPES ->
+                                "Công thức";
+
+                        case PAGE_INGREDIENTS ->
+                                "Nguyên liệu";
+
+                        case PAGE_BRANCHES ->
+                                "Chi nhánh";
+
+                        case PAGE_VAT ->
+                                "Cấu hình VAT";
+
+                        case PAGE_BACKUP ->
+                                "Sao lưu dữ liệu";
+
+                        case PAGE_REPORT ->
+                                "Báo cáo";
+
+                        default ->
+                                "CSMS";
+                };
+        }
+
+        private String getDefaultPage() {
+                return switch (currentRole) {
+                        case ADMIN ->
+                                PAGE_DASHBOARD;
+
+                        case MANAGER, WAITER ->
+                                PAGE_TABLE_DASHBOARD;
+
+                        case CASHIER ->
+                                PAGE_ORDER_LIST;
+
+                        case BARISTA ->
+                                PAGE_BARISTA_QUEUE;
+
+                        default ->
+                                PAGE_DASHBOARD;
                 };
         }
 
@@ -1747,7 +2109,10 @@ public class DashboardFrame extends JFrame {
                 private void setActive(boolean active) {
                         this.active = active;
 
-                        setForeground(Color.WHITE);
+                        setForeground(
+                                        active
+                                                        ? Color.WHITE
+                                                        : NORMAL_FOREGROUND);
 
                         setFont(
                                         new Font(

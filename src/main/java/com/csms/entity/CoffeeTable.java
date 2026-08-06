@@ -1,24 +1,23 @@
 package com.csms.entity;
 
+import java.time.LocalDateTime;
+
 public class CoffeeTable {
 
     private int id;
-    private String name;
+
+    private int tableNumber;
+
     private int capacity;
     private TableStatus status;
 
-    public CoffeeTable() {
-    }
+    // private Integer branchId;
+    // private String branchName;
 
-    public CoffeeTable(
-            int id,
-            String name,
-            int capacity,
-            TableStatus status) {
-        this.id = id;
-        this.name = name;
-        this.capacity = capacity;
-        this.status = status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    public CoffeeTable() {
     }
 
     public int getId() {
@@ -29,12 +28,12 @@ public class CoffeeTable {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public int getTableNumber() {
+        return tableNumber;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTableNumber(int tableNumber) {
+        this.tableNumber = tableNumber;
     }
 
     public int getCapacity() {
@@ -53,8 +52,54 @@ public class CoffeeTable {
         this.status = status;
     }
 
+    // public Integer getBranchId() {
+    // return branchId;
+    // }
+
+    // public void setBranchId(Integer branchId) {
+    // this.branchId = branchId;
+    // }
+
+    // public String getBranchName() {
+    // return branchName;
+    // }
+
+    // public void setBranchName(String branchName) {
+    // this.branchName = branchName;
+    // }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(
+            LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(
+            LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isAvailable() {
+        return status == TableStatus.AVAILABLE;
+    }
+
+    public boolean isOccupied() {
+        return status == TableStatus.OCCUPIED;
+    }
+
+    public boolean isInactive() {
+        return status == TableStatus.INACTIVE;
+    }
+
     @Override
     public String toString() {
-        return name;
+        return "Bàn " + tableNumber;
     }
 }
